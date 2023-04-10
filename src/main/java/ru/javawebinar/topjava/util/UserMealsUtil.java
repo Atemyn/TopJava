@@ -3,9 +3,11 @@ package ru.javawebinar.topjava.util;
 import ru.javawebinar.topjava.model.UserMeal;
 import ru.javawebinar.topjava.model.UserMealWithExcess;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -21,7 +23,9 @@ public class UserMealsUtil {
                 new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 31, 20, 0), "Ужин", 410)
         );
 
-        List<UserMealWithExcess> mealsTo = filteredByCycles(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000);
+        List<UserMealWithExcess> mealsTo =
+                filteredByCycles(meals, LocalTime.of(7, 0),
+                        LocalTime.of(12, 0), 2000);
         mealsTo.forEach(System.out::println);
 
 //        System.out.println(filteredByStreams(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000));
@@ -29,8 +33,28 @@ public class UserMealsUtil {
 
     public static List<UserMealWithExcess> filteredByCycles(List<UserMeal> meals,
                                                             LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
-        // TODO return filtered list with excess. Implement by cycles
-        return null;
+        List<UserMealWithExcess> userMealWithExcesses = new ArrayList<>();
+
+        for (var meal : meals) {
+            if (TimeUtil.isBetweenInclusive(meal.getDateTime().toLocalTime(), startTime, endTime)) {
+                userMealWithExcesses
+                        .add(new UserMealWithExcess(meal.getDateTime(),
+                                meal.getDescription(), meal.getCalories(),
+                                sumCaloriesForDate(meals, meal.getDateTime().toLocalDate()) > caloriesPerDay));
+            }
+        }
+
+        return userMealWithExcesses;
+    }
+
+    private static int sumCaloriesForDate(List<UserMeal> meals, LocalDate date) {
+        int sum = 0;
+        for (var meal : meals) {
+            if (meal.getDateTime().toLocalDate().isEqual(date)) {
+                sum += meal.getCalories();
+            }
+        }
+        return sum;
     }
 
     public static List<UserMealWithExcess> filteredByStreams(List<UserMeal> meals,
